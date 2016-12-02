@@ -1,0 +1,27 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+    <div class = 'flash'>
+        {% with messages= get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <strong> {{message}} </strong>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class = 'categories'>
+        Categories
+        <span class = 'category'><p>category1</p></span>
+        <span class = 'category'><p>category2</p></span>
+        <span class = 'category'><p>category3</p></span>
+    </div>
+
+    <div class='item-list'>
+        Latest Items
+        <span class = 'item'><p>item1</p></span>
+        <span class = 'item'><p>item2</p></span>
+        <span class = 'item'><p>item3</p></span>
+    </div>
+{% endblock %}
