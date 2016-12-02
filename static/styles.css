@@ -1,0 +1,62 @@
+body {
+    font-family: sans-serif;
+    background-color: #fff;
+    width: 90%;
+    margin: auto;
+    font-family: 'Cormorant Garamond', serif;
+}
+
+h1, h2, h3, h4 {
+    color: #333;
+}
+
+h1 {
+    font-family: 'Kaushan Script', cursive;
+    margin: 0;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 15px;
+    font-size: 40px;
+}
+
+h2 {
+    font-size: 1.2em;
+}
+
+a {
+    text-decoration: none;
+    color:#333;
+}
+
+.header {
+    left:50%;
+    text-align: center;
+}
+.container {
+    width: 90%;
+    margin: auto;
+}
+
+.login {
+    position: absolute;
+    right: 10%;
+    top : 0;
+}
+
+.flash {
+    background: #fffbda;
+    text-align: center;
+}
+
+.category-list {
+    width: 30%;
+    float: left;
+}
+
+.item-list {
+    width: 70%;
+    float: right;
+}
+
+.category_name, .item_name {
+    margin-bottom: 15px;
+}

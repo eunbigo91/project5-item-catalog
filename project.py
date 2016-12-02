@@ -26,13 +26,15 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind = engine)
 session = DBSession()
 
-@app.route('/catalog/<category_name>/JSON/')
-def itemJSON():
-    restaurants = session.query(Restaurant).all()
-    return jsonify(Restaurants=[r.serialize for r in restaurants])
+
+@app.route('/category/JSON')
+def categoriesJSON():
+    categories = session.query(Category).all()
+    return jsonify(categories=[c.serialize for c in categories])
 
 
 @app.route('/')
+@app.route('/catalog/')
 def showCatalog():
     categories = session.query(Category).order_by(asc(Category.name))
     items = session.query(Item).order_by(asc(Item.edited_At))
@@ -41,17 +43,10 @@ def showCatalog():
 
 @app.route('/catalog/<category_name>', methods=['GET'])
 def showItem(category_name):
-    item_id = request.args.get('item')
-    if checkCategory(category_name):
-        item = session.query(Item).filter(Item.id == item_id).one()
-        return render_template('show.html', item=item)
-    else:
-        return page_not_found("Invaild category")
-
-def checkCategory(category):
-    """ Prevents fake category url name """
-    q = session.query(Category).filter(Category.name == category).count()
-    return q != 0
+    categories = session.query(Category).order_by(asc(Category.name))
+    category = session.query(Category).filter_by(name=category_name).one()
+    items = session.query(Item).filter_by(category_id=category.id).all()
+    return render_template('item.html', categories=categories, items=items)
 
 
 @app.route('/login/')
