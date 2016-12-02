@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect
 from flask import url_for, flash, jsonify
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, User, Category, Item
 
@@ -34,8 +34,9 @@ def itemJSON():
 
 @app.route('/')
 def showCatalog():
-    restaurant = session.query(Category).all()
-    return render_template('catalog.html')
+    categories = session.query(Category).order_by(asc(Category.name))
+    items = session.query(Item).order_by(asc(Item.edited_At))
+    return render_template('catalog.html', categories=categories, items=items)
 
 
 @app.route('/catalog/<category_name>', methods=['GET'])

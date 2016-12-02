@@ -23,6 +23,7 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(80), nullable=False)
+    image = Column(String(250))
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 
@@ -53,7 +54,7 @@ class Item(Base):
             'name': self.name,
             'description': self.description,
             'id': self.id,
-            'category_name': self.category.name
+            'category_name': self.category.name,
         }
 
 ####### insert at end of file #######

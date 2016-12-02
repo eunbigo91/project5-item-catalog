@@ -10,18 +10,17 @@
             {% endif %}
         {% endwith %}
     </div>
-
     <div class = 'categories'>
-        Categories
-        <span class = 'category'><p>category1</p></span>
-        <span class = 'category'><p>category2</p></span>
-        <span class = 'category'><p>category3</p></span>
+        <h2>Categories</h2>
+        {% for c in categories %}
+        <span class = 'category'><p>{{c.name}}</p></span>
+        {% endfor %}
     </div>
 
     <div class='item-list'>
-        Latest Items
-        <span class = 'item'><p>item1</p></span>
-        <span class = 'item'><p>item2</p></span>
-        <span class = 'item'><p>item3</p></span>
+        <h2>Latest Items</h2>
+        {% for i in items %}
+        <span class = 'item'><p>{{i.name}}</p></span>
+        {% endfor %}
     </div>
 {% endblock %}
