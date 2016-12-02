@@ -26,6 +26,33 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind = engine)
 session = DBSession()
 
+@app.route('/catalog/<category_name>/JSON/')
+def itemJSON():
+    restaurants = session.query(Restaurant).all()
+    return jsonify(Restaurants=[r.serialize for r in restaurants])
+
+
+@app.route('/')
+def showCatalog():
+    restaurant = session.query(Category).all()
+    return render_template('catalog.html')
+
+
+@app.route('/catalog/<category_name>', methods=['GET'])
+def showItem(category_name):
+    item_id = request.args.get('item')
+    if checkCategory(category_name):
+        item = session.query(Item).filter(Item.id == item_id).one()
+        return render_template('show.html', item=item)
+    else:
+        return page_not_found("Invaild category")
+
+def checkCategory(category):
+    """ Prevents fake category url name """
+    q = session.query(Category).filter(Category.name == category).count()
+    return q != 0
+
+
 @app.route('/login/')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
@@ -266,26 +293,6 @@ def disconnect():
         flash("You were not logged in")
         return redirect(url_for('showCatalog'))
 
-
-@app.route('/')
-def showCatalog():
-    restaurant = session.query(Category).all()
-    return render_template('catalog.html')
-
-
-@app.route('/catalog/<category_name>', methods=['GET'])
-def showItem(category_name):
-    item_id = request.args.get('item')
-    if checkCategory(category_name):
-        item = session.query(Item).filter(Item.id == item_id).one()
-        return render_template('show.html', item=item)
-    else:
-        return page_not_found("Invaild category")
-
-def checkCategory(category):
-    """ Prevents fake category url name """
-    q = session.query(Category).filter(Category.name == category).count()
-    return q != 0
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
