@@ -49,6 +49,22 @@ def showCategoryItem(category_name):
     return render_template('item.html', categories=categories, category=category, items=items)
 
 
+@app.route('/catalog/new', methods=['GET', 'POST'])
+def newItem():
+    if request.method == 'POST':
+        tmp_category = request.form['category']
+        new_category = session.query(Category).filter_by(name=tmp_category).one()
+        newItem = Item(
+            name=request.form['title'], category_id=new_category.id,
+            description=request.form['description'])
+        session.add(newItem)
+        session.commit()
+        flash(str(newItem.name) + " has been created!")
+        return redirect(url_for('showItem', category_name=newItem.category.name, item_name=newItem.name))
+    else:
+        return render_template('newItem.html')
+
+
 @app.route('/catalog/<string:category_name>/<string:item_name>', methods=['GET'])
 def showItem(category_name, item_name):
     category = session.query(Category).filter_by(name=category_name).one()
@@ -64,9 +80,11 @@ def editItem(category_name, item_name):
         if request.form['title']:
             editItem.name = request.form['title']
         if request.form['description']:
-            editItem.name = request.form['description']
+            editItem.description = request.form['description']
         if request.form['category']:
-            editItem.name = request.form['category']
+            tmp_category = request.form['category']
+            new_category = session.query(Category).filter_by(name=tmp_category).one()
+            editItem.category_id = new_category.id
         session.add(editItem)
         session.commit()
         flash(str(editItem.name) + "("+str(editItem.category.name)+ ")"+ " has been edited!")
@@ -85,7 +103,7 @@ def deleteItem(category_name, item_name):
         flash(str(deleteItem.name) + " has been deleted!")
         return redirect(url_for('showCategoryItem', category_name=category_name))
     else:
-        return render_template('editItem.html', category=category, item=deleteItem)
+        return render_template('deleteItem.html', category=category, item=deleteItem)
 
 
 @app.route('/login/')

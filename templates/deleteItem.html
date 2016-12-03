@@ -1,0 +1,16 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+    <h2><b>Delete Item</b></h2>
+
+    <div class= 'delete_message'>
+        <h2> Are you sure you want to delete '<strong>{{item.name}}</strong>' ? </h2>
+
+        <form action="{{url_for('deleteItem', category_name=category.name, item_name=item.name)}}" method = 'post'>
+
+            <input class='button' type='submit', value = 'Delete'>
+            <a class='button' href="{{url_for('showItem', category_name=category.name, item_name=item.name)}}"> Cancel </a>
+        </form>
+
+    </div>
+{% endblock %}

@@ -18,6 +18,7 @@
     </div>
 
     <div class='item-list'>
+        <a href="{{url_for('newItem')}}">Add Item</a>
         <h2>Latest Items</h2>
         {% for i in items %}
         <div class = 'item_name'><a href="{{url_for('showItem', category_name=i.category.name, item_name=i.name)}}">{{i.name}} <i>({{i.category.name}})</i></a></div>
