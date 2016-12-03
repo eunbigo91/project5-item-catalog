@@ -27,10 +27,37 @@ DBSession = sessionmaker(bind = engine)
 session = DBSession()
 
 
-@app.route('/category/JSON')
+@app.route('/catalog/JSON')
+def catalogJSON():
+    output_json = []
+    categories = session.query(Category).all()
+    for category in categories:
+        items = session.query(Item).filter_by(category_id=category.id)
+        category_output = {}
+        category_output["id"] = category.id
+        category_output["name"] = category.name
+        category_output["items"] = [i.serialize for i in items]
+        output_json.append(category_output)
+    return jsonify(Categories=output_json)
+
+
+@app.route('/catalog/category/JSON')
 def categoriesJSON():
     categories = session.query(Category).all()
     return jsonify(categories=[c.serialize for c in categories])
+
+
+@app.route('/catalog/allitems/JSON')
+def allItemsJSON():
+    items = session.query(Item).all()
+    return jsonify(items=[i.serialize for i in items])
+
+
+@app.route('/catalog/<string:category_name>/JSON')
+def itemByCategoryJSON(category_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    items = session.query(Item).filter_by(category_id=category.id).all()
+    return jsonify(Category=[category.serialize],Items=[item.serialize for item in items])
 
 
 @app.route('/')
@@ -330,7 +357,6 @@ def disconnect():
         if login_session['provider'] == 'google':
             gdisconnect()
             del login_session['gplus_id']
-            # Check
             del login_session['access_token']
         if login_session['provider'] == 'facebook':
             fbdisconnect()
