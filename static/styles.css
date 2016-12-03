@@ -39,7 +39,7 @@ a {
 .login {
     position: absolute;
     right: 10%;
-    top : 0;
+    top : 2%;
 }
 
 .flash {
@@ -48,12 +48,12 @@ a {
 }
 
 .category-list {
-    width: 30%;
+    width: 35%;
     float: left;
 }
 
 .item-list {
-    width: 70%;
+    width: 65%;
     float: right;
 }
 

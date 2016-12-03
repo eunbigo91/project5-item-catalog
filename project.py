@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect
 from flask import url_for, flash, jsonify
-from sqlalchemy import create_engine, asc
+from sqlalchemy import create_engine, asc, desc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, User, Category, Item
 
@@ -37,16 +37,55 @@ def categoriesJSON():
 @app.route('/catalog/')
 def showCatalog():
     categories = session.query(Category).order_by(asc(Category.name))
-    items = session.query(Item).order_by(asc(Item.edited_At))
+    items = session.query(Item).order_by(desc(Item.edited_At))
     return render_template('catalog.html', categories=categories, items=items)
 
 
-@app.route('/catalog/<category_name>', methods=['GET'])
-def showItem(category_name):
+@app.route('/catalog/<string:category_name>', methods=['GET'])
+def showCategoryItem(category_name):
     categories = session.query(Category).order_by(asc(Category.name))
     category = session.query(Category).filter_by(name=category_name).one()
     items = session.query(Item).filter_by(category_id=category.id).all()
-    return render_template('item.html', categories=categories, items=items)
+    return render_template('item.html', categories=categories, category=category, items=items)
+
+
+@app.route('/catalog/<string:category_name>/<string:item_name>', methods=['GET'])
+def showItem(category_name, item_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    item = session.query(Item).filter_by(name=item_name, category_id=category.id).one()
+    return render_template('oneItem.html', category=category, item=item)
+
+
+@app.route('/catalog/<string:category_name>/<string:item_name>/edit', methods=['GET', 'POST'])
+def editItem(category_name, item_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    editItem = session.query(Item).filter_by(name=item_name, category_id=category.id).one()
+    if request.method == 'POST':
+        if request.form['title']:
+            editItem.name = request.form['title']
+        if request.form['description']:
+            editItem.name = request.form['description']
+        if request.form['category']:
+            editItem.name = request.form['category']
+        session.add(editItem)
+        session.commit()
+        flash(str(editItem.name) + "("+str(editItem.category.name)+ ")"+ " has been edited!")
+        return redirect(url_for('showItem', category_name=editItem.category.name, item_name=editItem.name))
+    else:
+        return render_template('editItem.html', category=category, item=editItem)
+
+
+@app.route('/catalog/<string:category_name>/<string:item_name>/delete', methods=['GET', 'POST'])
+def deleteItem(category_name, item_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    deleteItem = session.query(Item).filter_by(name=item_name, category_id=category.id).one()
+    if request.method == 'POST':
+        session.delete(deleteItem)
+        session.commit()
+        flash(str(deleteItem.name) + " has been deleted!")
+        return redirect(url_for('showCategoryItem', category_name=category_name))
+    else:
+        return render_template('editItem.html', category=category, item=deleteItem)
 
 
 @app.route('/login/')
