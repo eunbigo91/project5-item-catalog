@@ -19,7 +19,7 @@ h1 {
 }
 
 h2 {
-    font-size: 1.2em;
+    font-size: 1.5em;
 }
 
 a {
@@ -47,14 +47,20 @@ a {
     text-align: center;
 }
 
-.category-list {
+.category_list {
     width: 35%;
     float: left;
 }
 
-.item-list {
+.item_list {
     width: 65%;
     float: right;
+}
+
+.add_item{
+    position: absolute;
+    right: 10%;
+    top : 20%;
 }
 
 .category_name, .item_name {

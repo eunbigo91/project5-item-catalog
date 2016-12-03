@@ -10,14 +10,14 @@
             {% endif %}
         {% endwith %}
     </div>
-    <div class = 'category-list'>
+    <div class = 'category_list'>
         <h2>Categories</h2>
         {% for c in categories %}
         <div class='category_name'><a href="{{url_for('showCategoryItem', category_name=c.name)}}">{{c.name}}</a></div>
         {% endfor %}
     </div>
 
-    <div class='item-list'>
+    <div class='item_list'>
         <h2>{{category.name}} Items</h2>
         {% for i in items %}
         <div class = 'item_name'><a href="{{url_for('showItem', category_name=category.name, item_name=i.name)}}">{{i.name}}</a></div>

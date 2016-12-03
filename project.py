@@ -78,6 +78,7 @@ def showCategoryItem(category_name):
 
 @app.route('/catalog/new', methods=['GET', 'POST'])
 def newItem():
+    categories = session.query(Category).order_by(asc(Category.name))
     if request.method == 'POST':
         tmp_category = request.form['category']
         new_category = session.query(Category).filter_by(name=tmp_category).one()
@@ -89,7 +90,7 @@ def newItem():
         flash(str(newItem.name) + " has been created!")
         return redirect(url_for('showItem', category_name=newItem.category.name, item_name=newItem.name))
     else:
-        return render_template('newItem.html')
+        return render_template('newItem.html', categories=categories)
 
 
 @app.route('/catalog/<string:category_name>/<string:item_name>', methods=['GET'])
@@ -101,6 +102,7 @@ def showItem(category_name, item_name):
 
 @app.route('/catalog/<string:category_name>/<string:item_name>/edit', methods=['GET', 'POST'])
 def editItem(category_name, item_name):
+    categories = session.query(Category).order_by(asc(Category.name))
     category = session.query(Category).filter_by(name=category_name).one()
     editItem = session.query(Item).filter_by(name=item_name, category_id=category.id).one()
     if request.method == 'POST':
@@ -117,7 +119,7 @@ def editItem(category_name, item_name):
         flash(str(editItem.name) + "("+str(editItem.category.name)+ ")"+ " has been edited!")
         return redirect(url_for('showItem', category_name=editItem.category.name, item_name=editItem.name))
     else:
-        return render_template('editItem.html', category=category, item=editItem)
+        return render_template('editItem.html', category=category, item=editItem, categories=categories)
 
 
 @app.route('/catalog/<string:category_name>/<string:item_name>/delete', methods=['GET', 'POST'])

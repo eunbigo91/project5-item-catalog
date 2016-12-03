@@ -10,7 +10,11 @@
             <input class='input_box' type='text' size='30' name='title'>
 
             <p>Category</p>
-            <input class='input_box' type='text' name='category'>
+            <select name='category'>
+                {% for c in categories%}
+                <option value="{{c.name}}"> {{c.name}} </option>
+                {% endfor %}
+            </select>
 
             <p> Description </p>
             <p><textarea class='description_area' name='description'></textarea></p>
