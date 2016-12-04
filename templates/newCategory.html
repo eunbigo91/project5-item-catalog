@@ -1,0 +1,13 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+<div class='new'>
+    <form action="{{url_for('newCategory')}}" method = 'POST'>
+    <h2>Title</h2>
+    <p><input class='input_box' type='text' size='30' name='category'></p>
+    <input class='button' type='submit' value='Create'>
+    </form>
+    <font color="red">{{error}}</font>
+</div>
+
+{% endblock %}

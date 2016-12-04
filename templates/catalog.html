@@ -10,6 +10,9 @@
             {% endif %}
         {% endwith %}
     </div>
+    <div class='add_category'>
+        <a href="{{url_for('newCategory')}}">+ Add Category +</a>
+    </div>
     <div class = 'category_list'>
         <h2>Categories</h2>
         {% for c in categories %}
@@ -18,7 +21,7 @@
     </div>
 
     <div class='add_item'>
-        <a href="{{url_for('newItem')}}">Add Item</a>
+        <a href="{{url_for('newItem')}}">+ Add Item +</a>
     </div>
     <div class='item_list'>
         <h2>Latest Items</h2>
