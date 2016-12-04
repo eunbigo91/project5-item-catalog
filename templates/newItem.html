@@ -11,8 +11,12 @@
 
             <p>Category</p>
             <select name='category'>
-                {% for c in categories%}
-                <option value="{{c.name}}"> {{c.name}} </option>
+                {% for c in categories %}
+                {% if c.name == category_name %}
+                    <option selected="selected" value="{{c.name}}"> {{c.name}} </option>
+                {% else%}
+                    <option value="{{c.name}}"> {{c.name}} </option>
+                {% endif %}
                 {% endfor %}
             </select>
 

@@ -1,14 +1,14 @@
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
-    <h2><b>{{item.name}}</b></h2>
+    <h2><b>{{item.name}}</b> <i>({{item.category.name}})</i></h2>
 
     <div class='description'>
         {{item.description}}
     </br></br>
         <div class = "editdelete_menu">
-            <a href="{{url_for('editItem', category_name=category.name, item_name=item.name)}}">Edit</a> |
-            <a href="{{url_for('deleteItem', category_name=category.name, item_name=item.name)}}">Delete</a>
+            <a href="{{url_for('editItem', category_name=item.category.name, item_name=item.name)}}">Edit</a> |
+            <a href="{{url_for('deleteItem', category_name=item.category.name, item_name=item.name)}}">Delete</a>
         </div>
     </div>
 {% endblock %}

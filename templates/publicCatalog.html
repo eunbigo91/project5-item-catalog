@@ -16,13 +16,11 @@
         <div class='category_name'><a href="{{url_for('showCategoryItem', category_name=c.name)}}">{{c.name}}</a></div>
         {% endfor %}
     </div>
-    <div class='add_item'>
-        <a href="{{url_for('newCatalogItem', category_name=category.name)}}">Add Item</a>
-    </div>
+
     <div class='item_list'>
-        <h2>{{category.name}} Items</h2>
+        <h2>Latest Items</h2>
         {% for i in items %}
-        <div class = 'item_name'><a href="{{url_for('showItem', category_name=category.name, item_name=i.name)}}">{{i.name}}</a></div>
+        <div class = 'item_name'><a href="{{url_for('showItem', category_name=i.category.name, item_name=i.name)}}">{{i.name}} <i>({{i.category.name}})</i></a></div>
         {% endfor %}
     </div>
 {% endblock %}

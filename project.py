@@ -65,19 +65,16 @@ def itemByCategoryJSON(category_name):
 def showCatalog():
     categories = session.query(Category).order_by(asc(Category.name))
     items = session.query(Item).order_by(desc(Item.edited_At))
-    return render_template('catalog.html', categories=categories, items=items)
+    if 'username' not in login_session:
+        return render_template('publicCatalog.html', categories=categories, items=items)
+    else:
+        return render_template('catalog.html', categories=categories, items=items)
 
 
-@app.route('/catalog/<string:category_name>', methods=['GET'])
-def showCategoryItem(category_name):
-    categories = session.query(Category).order_by(asc(Category.name))
-    category = session.query(Category).filter_by(name=category_name).one()
-    items = session.query(Item).filter_by(category_id=category.id).all()
-    return render_template('item.html', categories=categories, category=category, items=items)
-
-
-@app.route('/catalog/new', methods=['GET', 'POST'])
+@app.route('/catalog/new/', methods=['GET', 'POST'])
 def newItem():
+    if 'username' not in login_session:
+        return redirect('/login')
     categories = session.query(Category).order_by(asc(Category.name))
     if request.method == 'POST':
         tmp_category = request.form['category']
@@ -93,18 +90,55 @@ def newItem():
         return render_template('newItem.html', categories=categories)
 
 
+@app.route('/catalog/<string:category_name>/', methods=['GET'])
+def showCategoryItem(category_name):
+    categories = session.query(Category).order_by(asc(Category.name))
+    category = session.query(Category).filter_by(name=category_name).one()
+    items = session.query(Item).filter_by(category_id=category.id).all()
+    if 'username' not in login_session:
+        return render_template('publicItem.html', categories=categories, category=category, items=items)
+    else:
+        return render_template('item.html', categories=categories, category=category, items=items)
+
+
+@app.route('/catalog/<string:category_name>/new/', methods=['GET', 'POST'])
+def newCatalogItem(category_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+    categories = session.query(Category).order_by(asc(Category.name))
+    if request.method == 'POST':
+        tmp_category = request.form['category']
+        new_category = session.query(Category).filter_by(name=tmp_category).one()
+        newItem = Item(
+            name=request.form['title'], category_id=new_category.id,
+            description=request.form['description'])
+        session.add(newItem)
+        session.commit()
+        flash(str(newItem.name) + " has been created!")
+        return redirect(url_for('showItem', category_name=newItem.category.name, item_name=newItem.name))
+    else:
+        return render_template('newItem.html', categories=categories, category_name=category_name)
+
+
 @app.route('/catalog/<string:category_name>/<string:item_name>', methods=['GET'])
 def showItem(category_name, item_name):
     category = session.query(Category).filter_by(name=category_name).one()
     item = session.query(Item).filter_by(name=item_name, category_id=category.id).one()
-    return render_template('oneItem.html', category=category, item=item)
+    if 'username' not in login_session:
+        return render_template('publicOneItem.html', item=item)
+    else:
+        return render_template('oneItem.html', item=item)
 
 
 @app.route('/catalog/<string:category_name>/<string:item_name>/edit', methods=['GET', 'POST'])
 def editItem(category_name, item_name):
+    if 'username' not in login_session:
+        return redirect('/login')
     categories = session.query(Category).order_by(asc(Category.name))
     category = session.query(Category).filter_by(name=category_name).one()
     editItem = session.query(Item).filter_by(name=item_name, category_id=category.id).one()
+    if editItem.user_id != login_session['user_id']:
+        return "<script>function myFunction() {alert('You are not authorized to edit this item. Please create your own item in order to edit.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
         if request.form['title']:
             editItem.name = request.form['title']
@@ -124,8 +158,12 @@ def editItem(category_name, item_name):
 
 @app.route('/catalog/<string:category_name>/<string:item_name>/delete', methods=['GET', 'POST'])
 def deleteItem(category_name, item_name):
+    if 'username' not in login_session:
+        return redirect('/login')
     category = session.query(Category).filter_by(name=category_name).one()
     deleteItem = session.query(Item).filter_by(name=item_name, category_id=category.id).one()
+    if deleteItem.user_id != login_session['user_id']:
+        return "<script>function myFunction() {alert('You are not authorized to delete this item. Please create your own item in order to delete.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
         session.delete(deleteItem)
         session.commit()
