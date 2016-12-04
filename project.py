@@ -21,21 +21,23 @@ CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 APPLICATION_NAME = "Item Catalog"
 
+# Connect to Database and create database session
 engine = create_engine('sqlite:///catalogitem.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind = engine)
 session = DBSession()
 
 
+# JSON APIs to view item information
 @app.route('/catalog/JSON')
 def catalogJSON():
     output_json = []
     categories = session.query(Category).all()
-    for category in categories:
-        items = session.query(Item).filter_by(category_id=category.id)
+    for c in categories:
+        items = session.query(Item).filter_by(category_id=c.id)
         category_output = {}
-        category_output["id"] = category.id
-        category_output["name"] = category.name
+        category_output["id"] = c.id
+        category_output["name"] = c.name
         category_output["items"] = [i.serialize for i in items]
         output_json.append(category_output)
     return jsonify(Categories=output_json)
@@ -60,6 +62,7 @@ def itemByCategoryJSON(category_name):
     return jsonify(Category=[category.serialize],Items=[item.serialize for item in items])
 
 
+# Show all items
 @app.route('/')
 @app.route('/catalog/')
 def showCatalog():
@@ -71,6 +74,18 @@ def showCatalog():
         return render_template('catalog.html', categories=categories, items=items)
 
 
+@app.route('/catalog/<string:category_name>/', methods=['GET'])
+def showCategoryItem(category_name):
+    categories = session.query(Category).order_by(asc(Category.name))
+    category = session.query(Category).filter_by(name=category_name).one()
+    items = session.query(Item).filter_by(category_id=category.id).all()
+    if 'username' not in login_session:
+        return render_template('publicItem.html', categories=categories, category=category, items=items)
+    else:
+        return render_template('item.html', categories=categories, category=category, items=items)
+
+
+# Create a new item
 @app.route('/catalog/new/', methods=['GET', 'POST'])
 def newItem():
     if 'username' not in login_session:
@@ -88,17 +103,6 @@ def newItem():
         return redirect(url_for('showItem', category_name=newItem.category.name, item_name=newItem.name))
     else:
         return render_template('newItem.html', categories=categories)
-
-
-@app.route('/catalog/<string:category_name>/', methods=['GET'])
-def showCategoryItem(category_name):
-    categories = session.query(Category).order_by(asc(Category.name))
-    category = session.query(Category).filter_by(name=category_name).one()
-    items = session.query(Item).filter_by(category_id=category.id).all()
-    if 'username' not in login_session:
-        return render_template('publicItem.html', categories=categories, category=category, items=items)
-    else:
-        return render_template('item.html', categories=categories, category=category, items=items)
 
 
 @app.route('/catalog/<string:category_name>/new/', methods=['GET', 'POST'])
@@ -130,6 +134,7 @@ def showItem(category_name, item_name):
         return render_template('oneItem.html', item=item)
 
 
+# Edit a item
 @app.route('/catalog/<string:category_name>/<string:item_name>/edit', methods=['GET', 'POST'])
 def editItem(category_name, item_name):
     if 'username' not in login_session:
@@ -156,6 +161,7 @@ def editItem(category_name, item_name):
         return render_template('editItem.html', category=category, item=editItem, categories=categories)
 
 
+# Delete a item
 @app.route('/catalog/<string:category_name>/<string:item_name>/delete', methods=['GET', 'POST'])
 def deleteItem(category_name, item_name):
     if 'username' not in login_session:
@@ -173,6 +179,7 @@ def deleteItem(category_name, item_name):
         return render_template('deleteItem.html', category=category, item=deleteItem)
 
 
+# Create anti-forgery state token
 @app.route('/login/')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
@@ -391,6 +398,7 @@ def createUser(login_session):
     return user.id
 
 
+# DISCONNECT - Revoke a current user's token and reset their login_session
 @app.route('/disconnect')
 def disconnect():
     if 'provider' in login_session:
