@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect
 from flask import url_for, flash, jsonify
-from sqlalchemy import create_engine, asc, desc
+from sqlalchemy import create_engine, asc, desc, func
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, User, Category, Item
 
@@ -85,12 +85,13 @@ def showCategoryItem(category_name):
     categories = session.query(Category).order_by(asc(Category.name))
     category = session.query(Category).filter_by(name=category_name).one()
     items = session.query(Item).filter_by(category_id=category.id).all()
+    count = session.query(func.count(Item.id)).filter_by(category_id=category.id).scalar()
     if 'username' not in login_session:
         return render_template('publicItem.html', categories=categories,
                                category=category, items=items)
     else:
         return render_template('item.html', categories=categories,
-                               category=category, items=items)
+                               category=category, items=items, count=count)
 
 
 @app.route('/catalog/<string:category_name>/<string:item_name>',
@@ -103,6 +104,75 @@ def showItem(category_name, item_name):
         return render_template('publicOneItem.html', item=item)
     else:
         return render_template('oneItem.html', item=item)
+
+
+# Create a new category
+@app.route('/catalog/newCategory/', methods=['GET', 'POST'])
+def newCategory():
+    if 'username' not in login_session:
+        return redirect('/login')
+    if request.method == 'POST':
+        categories = session.query(Category).order_by(asc(Category.name))
+        for c in categories:
+            if c.name == request.form['name']:
+                error = "That category exists already!"
+                return render_template('newCategory.html', error=error)
+        newCategory = Category(name=request.form['name'],
+                               user_id=login_session['user_id'])
+        session.add(newCategory)
+        session.commit()
+        flash(str(newCategory.name) + " has been created!")
+        return redirect(url_for('showCatalog'))
+    else:
+        return render_template('newCategory.html')
+
+
+# Edit a category
+@app.route('/catalog/<string:category_name>/edit',
+           methods=['GET', 'POST'])
+def editCategory(category_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+    editCategory = session.query(Category).filter_by(name=category_name).one()
+    if editCategory.user_id != login_session['user_id']:
+        return "<script>function myFunction() {alert('You are not authorized to edit this category. Please create your own category in order to edit.');}</script><body onload='myFunction()''>"
+    if request.method == 'POST':
+        categories = session.query(Category).order_by(asc(Category.name))
+        for c in categories:
+            if c.name == request.form['name']:
+                error = "That category exists already!"
+                return render_template('editCategory.html', error=error)
+        editCategory.name = request.form['name']
+        session.add(editCategory)
+        session.commit()
+        flash(str(editCategory.name)+ " has been edited!")
+        return redirect(url_for('showCategoryItem',
+                        category_name=editCategory.name))
+    else:
+        return render_template('editCategory.html', category=editCategory)
+
+
+# Delete a category
+@app.route('/catalog/<string:category_name>/delete',
+           methods=['GET', 'POST'])
+def deleteCategory(category_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+    deleteCategory = session.query(Category).filter_by(name=category_name).one()
+    if deleteCategory.user_id != login_session['user_id']:
+        return "<script>function myFunction() {alert('You are not authorized to delete this category. Please create your own category in order to delete.');}</script><body onload='myFunction()''>"
+    if request.method == 'POST':
+        session.delete(deleteCategory)
+        session.commit()
+        items = session.query(Item).filter_by(category_id=deleteCategory.id).all()
+        for i in items:
+            session.delete(i)
+            session.commit()
+        flash(str(deleteCategory.name) + " has been deleted!")
+        return redirect(url_for('showCatalog'))
+    else:
+        return render_template('deleteCategory.html', category=deleteCategory,
+                               item=deleteCategory)
 
 
 # Create a new item
@@ -120,7 +190,7 @@ def newItem():
             description=request.form['description'])
         session.add(newItem)
         session.commit()
-        flash(str(newItem.name) + "(" + str(editItem.category.name) + ")" + " has been created!")
+        flash(str(newItem.name) + "(" + str(newItem.category.name) + ")" + " has been created!")
         return redirect(url_for('showItem',
                         category_name=newItem.category.name,
                         item_name=newItem.name))
@@ -149,27 +219,6 @@ def newCategoryItem(category_name):
     else:
         return render_template('newItem.html', categories=categories,
                                category_name=category_name)
-
-
-# Create a new category
-@app.route('/catalog/newCategory/', methods=['GET', 'POST'])
-def newCategory():
-    if 'username' not in login_session:
-        return redirect('/login')
-    if request.method == 'POST':
-        categories = session.query(Category).order_by(asc(Category.name))
-        for c in categories:
-            if c.name == request.form['category']:
-                error = "That category exists already!"
-                return render_template('newCategory.html', error=error)
-        newCategory = Category(name=request.form['category'],
-                               user_id=login_session['user_id'])
-        session.add(newCategory)
-        session.commit()
-        flash(str(newCategory.name) + " has been created!")
-        return redirect(url_for('showCatalog'))
-    else:
-        return render_template('newCategory.html')
 
 
 # Edit a item

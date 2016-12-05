@@ -1,7 +1,7 @@
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
-    <h2><b>{{item.name}}</b> <i>({{item.category.name}})</i></h2>
+    <a href="{{url_for('showCategoryItem', category_name=item.category.name)}}"><h2><b>{{item.name}}</b> <i>({{item.category.name}})</i></h2> </a>
 
     <div class='description'>
         {{item.description}}

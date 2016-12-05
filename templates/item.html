@@ -10,6 +10,9 @@
             {% endif %}
         {% endwith %}
     </div>
+    <div class='add_category'>
+        <a href="{{url_for('newCategory')}}">+ Add Category +</a>
+    </div>
     <div class = 'category_list'>
         <h2>Categories</h2>
         {% for c in categories %}
@@ -20,7 +23,11 @@
         <a href="{{url_for('newCategoryItem', category_name=category.name)}}">Add Item</a>
     </div>
     <div class='item_list'>
-        <h2>{{category.name}} Items</h2>
+        <h2>{{category.name}} Items ({{count}} items)</h2>
+        <div class = "editdelete_menu">
+            <a href="{{url_for('editCategory', category_name=category.name)}}">Edit</a> |
+            <a href="{{url_for('deleteCategory', category_name=category.name)}}">Delete</a>
+        </div>
         {% for i in items %}
         <div class = 'item_name'><a href="{{url_for('showItem', category_name=category.name, item_name=i.name)}}">{{i.name}}</a></div>
         {% endfor %}
