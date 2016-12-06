@@ -30,6 +30,7 @@ session = DBSession()
 
 # JSON APIs to view catalog information
 @app.route('/catalog/JSON')
+@app.route('/catalog.json')
 def catalogJSON():
     output_json = []
     categories = session.query(Category).all()
@@ -45,6 +46,7 @@ def catalogJSON():
 
 # JSON APIs to view category information
 @app.route('/catalog/category/JSON')
+@app.route('/catalog/category.json')
 def categoriesJSON():
     categories = session.query(Category).all()
     return jsonify(categories=[c.serialize for c in categories])
@@ -52,6 +54,7 @@ def categoriesJSON():
 
 # JSON APIs to view all items information
 @app.route('/catalog/allitems/JSON')
+@app.route('/catalog/allitems.json')
 def allItemsJSON():
     items = session.query(Item).all()
     return jsonify(items=[i.serialize for i in items])
@@ -59,6 +62,7 @@ def allItemsJSON():
 
 # JSON APIs to view items by categories information
 @app.route('/catalog/<string:category_name>/JSON')
+@app.route('/catalog/<string:category_name>.json')
 def itemByCategoryJSON(category_name):
     category = session.query(Category).filter_by(name=category_name).one()
     items = session.query(Item).filter_by(category_id=category.id).all()

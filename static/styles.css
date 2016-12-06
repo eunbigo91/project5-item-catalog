@@ -72,3 +72,7 @@ a {
 .category_name, .item_name {
     margin-bottom: 15px;
 }
+
+.editdelete_menu {
+    margin-top: 0;
+}

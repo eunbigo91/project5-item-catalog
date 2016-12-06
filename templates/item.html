@@ -20,7 +20,7 @@
         {% endfor %}
     </div>
     <div class='add_item'>
-        <a href="{{url_for('newCategoryItem', category_name=category.name)}}">Add Item</a>
+        <a href="{{url_for('newCategoryItem', category_name=category.name)}}">+ Add Item +</a>
     </div>
     <div class='item_list'>
         <h2>{{category.name}} Items ({{count}} items)</h2>
