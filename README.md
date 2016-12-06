@@ -1,6 +1,6 @@
 # Project: Item Catalog
 
-This is a RESTful web application using the Python framework Flask along with implementing third-party OAuth authentication. The Item Catalog project consists of developing an application that provides a list of items within a variety of categories,                   .
+This is a RESTful web application using the Python framework Flask along with implementing third-party OAuth authentication. The Item Catalog project consists of developing an application that provides a list of items within a variety of categories, as well as provide a user registration and authentication system.
 
 
 ## Installation
