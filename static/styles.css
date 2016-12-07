@@ -60,13 +60,13 @@ a {
 .add_item{
     position: absolute;
     right: 10%;
-    top : 15%;
+    top : 18%;
 }
 
 .add_category {
     position: absolute;
     left: 9.5%;
-    top : 15%;
+    top : 18%;
 }
 
 .category_name, .item_name {

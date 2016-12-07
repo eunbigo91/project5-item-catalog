@@ -1,11 +1,13 @@
+from functools import wraps
 from flask import Flask, render_template, request, redirect
-from flask import url_for, flash, jsonify
+from flask import url_for, flash, jsonify, g
 from sqlalchemy import create_engine, asc, desc, func
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, User, Category, Item
 
 from flask import session as login_session
-import random, string
+import random
+import string
 
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
@@ -26,6 +28,17 @@ engine = create_engine('sqlite:///catalogitem.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' in login_session:
+            return f(*args, **kwargs)
+        else:
+            flash("You are not allowed to access there")
+            return redirect('/login')
+    return decorated_function
 
 
 # JSON APIs to view catalog information
@@ -49,7 +62,7 @@ def catalogJSON():
 @app.route('/catalog/category.json')
 def categoriesJSON():
     categories = session.query(Category).all()
-    return jsonify(categories=[c.serialize for c in categories])
+    return jsonify(Categories=[c.serialize for c in categories])
 
 
 # JSON APIs to view all items information
@@ -57,7 +70,7 @@ def categoriesJSON():
 @app.route('/catalog/allitems.json')
 def allItemsJSON():
     items = session.query(Item).all()
-    return jsonify(items=[i.serialize for i in items])
+    return jsonify(Items=[i.serialize for i in items])
 
 
 # JSON APIs to view items by categories information
@@ -68,6 +81,16 @@ def itemByCategoryJSON(category_name):
     items = session.query(Item).filter_by(category_id=category.id).all()
     return jsonify(Category=[category.serialize],
                    Items=[item.serialize for item in items])
+
+
+# JSON APIs to view a item
+@app.route('/catalog/<string:category_name>/<string:item_name>/JSON')
+@app.route('/catalog/<string:category_name>/<string:item_name>.json')
+def itemJSON(category_name, item_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    item = session.query(Item).filter_by(name=item_name,
+                                         category_id=category.id).one()
+    return jsonify(Item=item.serialize)
 
 
 # Show all items
@@ -111,10 +134,10 @@ def showItem(category_name, item_name):
 
 
 # Create a new category
+
 @app.route('/catalog/newCategory/', methods=['GET', 'POST'])
+@login_required
 def newCategory():
-    if 'username' not in login_session:
-        return redirect('/login')
     if request.method == 'POST':
         categories = session.query(Category).order_by(asc(Category.name))
         for c in categories:
@@ -134,9 +157,8 @@ def newCategory():
 # Edit a category
 @app.route('/catalog/<string:category_name>/edit',
            methods=['GET', 'POST'])
+@login_required
 def editCategory(category_name):
-    if 'username' not in login_session:
-        return redirect('/login')
     editCategory = session.query(Category).filter_by(name=category_name).one()
     if editCategory.user_id != login_session['user_id']:
         return "<script>function myFunction() {alert('You are not authorized to edit this category. Please create your own category in order to edit.');}</script><body onload='myFunction()''>"
@@ -159,9 +181,8 @@ def editCategory(category_name):
 # Delete a category
 @app.route('/catalog/<string:category_name>/delete',
            methods=['GET', 'POST'])
+@login_required
 def deleteCategory(category_name):
-    if 'username' not in login_session:
-        return redirect('/login')
     deleteCategory = session.query(Category).filter_by(name=category_name).one()
     if deleteCategory.user_id != login_session['user_id']:
         return "<script>function myFunction() {alert('You are not authorized to delete this category. Please create your own category in order to delete.');}</script><body onload='myFunction()''>"
@@ -181,9 +202,8 @@ def deleteCategory(category_name):
 
 # Create a new item
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
+@login_required
 def newItem():
-    if 'username' not in login_session:
-        return redirect('/login')
     categories = session.query(Category).order_by(asc(Category.name))
     if request.method == 'POST':
         tmp_category = request.form['category']
@@ -203,9 +223,8 @@ def newItem():
 
 
 @app.route('/catalog/<string:category_name>/new/', methods=['GET', 'POST'])
+@login_required
 def newCategoryItem(category_name):
-    if 'username' not in login_session:
-        return redirect('/login')
     categories = session.query(Category).order_by(asc(Category.name))
     if request.method == 'POST':
         tmp_category = request.form['category']
@@ -228,9 +247,8 @@ def newCategoryItem(category_name):
 # Edit a item
 @app.route('/catalog/<string:category_name>/<string:item_name>/edit',
            methods=['GET', 'POST'])
+@login_required
 def editItem(category_name, item_name):
-    if 'username' not in login_session:
-        return redirect('/login')
     categories = session.query(Category).order_by(asc(Category.name))
     category = session.query(Category).filter_by(name=category_name).one()
     editItem = session.query(Item).filter_by(name=item_name,
@@ -260,9 +278,8 @@ def editItem(category_name, item_name):
 # Delete a item
 @app.route('/catalog/<string:category_name>/<string:item_name>/delete',
            methods=['GET', 'POST'])
+@login_required
 def deleteItem(category_name, item_name):
-    if 'username' not in login_session:
-        return redirect('/login')
     category = session.query(Category).filter_by(name=category_name).one()
     deleteItem = session.query(Item).filter_by(name=item_name,
                                                category_id=category.id).one()
