@@ -21,8 +21,9 @@ This is a RESTful web application using the Python framework Flask along with im
 6. Powers on the virtual machine : `vagrant up`
 7. Logs into the virtual machine : `vagrant ssh`
 8. Change directory to the synced folders : `cd /vagrant/catalog`
-9. Run project.py : python application.py
-10. Access and test your application by visiting : http://localhost:8000 locally
+9. Set up the database : python database_setup.py
+10. Run project.py : python application.py
+11. Access and test your application by visiting : http://localhost:8000 locally
 
 
 ## JSON API endpoints
