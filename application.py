@@ -33,7 +33,7 @@ session = DBSession()
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'username' in login_session:
+        if 'email' in login_session:
             return f(*args, **kwargs)
         else:
             flash("You are not allowed to access there")
@@ -161,7 +161,12 @@ def newCategory():
 def editCategory(category_name):
     editCategory = session.query(Category).filter_by(name=category_name).one()
     if editCategory.user_id != login_session['user_id']:
-        return "<script>function myFunction() {alert('You are not authorized to edit this category. Please create your own category in order to edit.');}</script><body onload='myFunction()''>"
+        flash(
+            'You are not authorized to this item. '
+            'You can only edit your own categories.'
+            )
+        return redirect(url_for('showCategoryItem',
+                        category_name=category.name))
     if request.method == 'POST':
         categories = session.query(Category).order_by(asc(Category.name))
         for c in categories:
@@ -171,7 +176,7 @@ def editCategory(category_name):
         editCategory.name = request.form['name']
         session.add(editCategory)
         session.commit()
-        flash(str(editCategory.name)+ " has been edited!")
+        flash(str(editCategory.name) + " has been edited!")
         return redirect(url_for('showCategoryItem',
                         category_name=editCategory.name))
     else:
@@ -183,21 +188,25 @@ def editCategory(category_name):
            methods=['GET', 'POST'])
 @login_required
 def deleteCategory(category_name):
-    deleteCategory = session.query(Category).filter_by(name=category_name).one()
-    if deleteCategory.user_id != login_session['user_id']:
-        return "<script>function myFunction() {alert('You are not authorized to delete this category. Please create your own category in order to delete.');}</script><body onload='myFunction()''>"
+    deleteCa = session.query(Category).filter_by(name=category_name).one()
+    if deleteCa.user_id != login_session['user_id']:
+        flash(
+            'You are not authorized to this item. '
+            'You can only delete your own categories.'
+            )
+        return redirect(url_for('showCategoryItem',
+                        category_name=category.name))
     if request.method == 'POST':
-        session.delete(deleteCategory)
+        session.delete(deleteCa)
         session.commit()
-        items = session.query(Item).filter_by(category_id=deleteCategory.id).all()
+        items = session.query(Item).filter_by(category_id=deleteCa.id).all()
         for i in items:
             session.delete(i)
             session.commit()
-        flash(str(deleteCategory.name) + " has been deleted!")
+        flash(str(deleteCa.name) + " has been deleted!")
         return redirect(url_for('showCatalog'))
     else:
-        return render_template('deleteCategory.html', category=deleteCategory,
-                               item=deleteCategory)
+        return render_template('deleteCategory.html', category=deleteCa)
 
 
 # Create a new item
@@ -214,7 +223,8 @@ def newItem():
             description=request.form['description'])
         session.add(newItem)
         session.commit()
-        flash(str(newItem.name) + "(" + str(newItem.category.name) + ")" + " has been created!")
+        flash(str(newItem.name) + "(" + str(newItem.category.name) + ")" +
+              " has been created!")
         return redirect(url_for('showItem',
                         category_name=newItem.category.name,
                         item_name=newItem.name))
@@ -235,7 +245,8 @@ def newCategoryItem(category_name):
             description=request.form['description'])
         session.add(newItem)
         session.commit()
-        flash(str(newItem.name) + "(" + str(editItem.category.name) + ")" + " has been created!")
+        flash(str(newItem.name) + "(" + str(editItem.category.name) + ")" +
+              " has been created!")
         return redirect(url_for('showItem',
                         category_name=newItem.category.name,
                         item_name=newItem.name))
@@ -254,7 +265,13 @@ def editItem(category_name, item_name):
     editItem = session.query(Item).filter_by(name=item_name,
                                              category_id=category.id).one()
     if editItem.user_id != login_session['user_id']:
-        return "<script>function myFunction() {alert('You are not authorized to edit this item. Please create your own item in order to edit.');}</script><body onload='myFunction()''>"
+        flash(
+            'You are not authorized to this item. '
+            'You can only edit your own items.'
+            )
+        return redirect(url_for('showItem',
+                        category_name=category.name, item_name=item_name))
+
     if request.method == 'POST':
         if request.form['title']:
             editItem.name = request.form['title']
@@ -266,7 +283,8 @@ def editItem(category_name, item_name):
             editItem.category_id = new_c.id
         session.add(editItem)
         session.commit()
-        flash(str(editItem.name) + "(" + str(editItem.category.name) + ")" + " has been edited!")
+        flash(str(editItem.name) + "(" + str(editItem.category.name) + ")" +
+              " has been edited!")
         return redirect(url_for('showItem',
                         category_name=editItem.category.name,
                         item_name=editItem.name))
@@ -284,7 +302,12 @@ def deleteItem(category_name, item_name):
     deleteItem = session.query(Item).filter_by(name=item_name,
                                                category_id=category.id).one()
     if deleteItem.user_id != login_session['user_id']:
-        return "<script>function myFunction() {alert('You are not authorized to delete this item. Please create your own item in order to delete.');}</script><body onload='myFunction()''>"
+        flash(
+            'You are not authorized to this item. '
+            'You can only delete your own items.'
+            )
+        return redirect(url_for('showItem',
+                        category_name=category.name, item_name=item_name))
     if request.method == 'POST':
         session.delete(deleteItem)
         session.commit()
@@ -357,7 +380,7 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
+        response = make_response(json.dumps('Current user is connected.'),
                                  200)
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -428,8 +451,10 @@ def fbconnect():
     access_token = request.data
 
     # Exchange client token for long-lived server-side token
-    app_id = json.loads(open('fb_client_secrets.json', 'r').read())['web']['app_id']
-    app_secret = json.loads(open('fb_client_secrets.json', 'r').read())['web']['app_secret']
+    app_id = json.loads(open('fb_client_secrets.json',
+                        'r').read())['web']['app_id']
+    app_secret = json.loads(open('fb_client_secrets.json',
+                            'r').read())['web']['app_secret']
     url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
         app_id, app_secret, access_token)
     h = httplib2.Http()

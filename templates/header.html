@@ -9,3 +9,12 @@
         {% endif %}
     </div>
 </div>
+<div class = 'flash'>
+        {% with messages= get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <strong> {{message}} </strong>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
